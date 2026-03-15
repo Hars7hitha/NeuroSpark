@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calibration — NeuroFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;700&family=Syne+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #08090d;
+        --surface: #0f1117;
+        --card: #111520;
+        --border: #1a1f2e;
+        --text: #d4dbe8;
+        --muted: #3d4a5c;
+        --accent: #4f7cff;
+        --green: #00e5c0;
+        --mono: "Syne Mono", monospace;
+        --sans: "Syne", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 48px 48px;
+        opacity: 0.3;
+        pointer-events: none;
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 480px;
+        padding: 2rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2.5rem;
+        text-align: center;
+      }
+      .step-label {
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+      }
+      .title {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.02em;
+      }
+      .subtitle {
+        font-size: 0.875rem;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+
+      /* Breathing circle */
+      .circle-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        height: 140px;
+      }
+      .circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--muted);
+        transition: all 0.8s ease;
+      }
+      .circle.active {
+        border-color: var(--green);
+        box-shadow: 0 0 40px #00e5c040;
+        color: var(--green);
+      }
+      .circle.done {
+        border-color: var(--accent);
+        box-shadow: 0 0 40px #4f7cff40;
+        color: var(--accent);
+      }
+
+      /* Progress bar */
+      .prog-track {
+        background: var(--border);
+        border-radius: 99px;
+        height: 4px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+      }
+      .prog-fill {
+        height: 4px;
+        border-radius: 99px;
+        background: var(--green);
+        width: 0%;
+        transition: width 1s linear;
+      }
+      .prog-label {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: var(--sans);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .btn:hover {
+        opacity: 0.85;
+      }
+      .btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        margin-top: 0.75rem;
+      }
+
+      .status-line {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+        min-height: 1.2rem;
+      }
+      .status-line.ok {
+        color: var(--green);
+      }
+      .status-line.err {
+        color: #ff4d6a;
+      }
+
+      select {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        padding: 0.45rem 0.8rem;
+        outline: none;
+        cursor: pointer;
+        margin-right: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <!-- Step 1: Connect -->
+        <div id="step1">
+          <div class="step-label">Step 1 of 2</div>
+          <div class="title">Connect your EEG</div>
+          <div class="subtitle">
+            Select your Arduino port and connect before calibrating.<br />
+            Make sure electrodes are properly placed.
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              margin-bottom: 1.25rem;
+            "
+          >
+            <select id="portSel"></select>
+            <button
+              class="btn"
+              style="width: auto; padding: 0.45rem 1.2rem"
+              onclick="loadPorts()"
+            >
+              Refresh
+            </button>
+          </div>
+          <div class="status-line" id="connStatus">Not connected</div>
+          <button class="btn" onclick="doConnect()">Connect</button>
+          <button class="btn btn-ghost" onclick="skipConnect()">
+            Skip — already connected
+          </button>
+        </div>
+
+        <!-- Step 2: Calibrate -->
+        <div id="step2" style="display: none">
+          <div class="step-label">Step 2 of 2</div>
+          <div class="title">Baseline calibration</div>
+          <div class="subtitle">
+            Sit comfortably. Relax your face, jaw, and shoulders.<br />
+            Breathe slowly. Do not clench or move for 30 seconds.
+          </div>
+          <div class="circle-wrap">
+            <div class="circle" id="breathCircle">Ready</div>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" id="progFill"></div>
+          </div>
+          <div class="prog-label" id="progLabel">Press Start when ready</div>
+          <div class="status-line" id="calibStatus"></div>
+          <button class="btn" id="startBtn" onclick="startCalib()">
+            Start calibration
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const TOTAL_SECS = 30;
+      let elapsed = 0;
+      let timer = null;
+      let connected = false;
+
+      async function loadPorts() {
+        const r = await fetch("/api/ports");
+        const d = await r.json();
+        const sel = document.getElementById("portSel");
+        sel.innerHTML = d.ports.length
+          ? d.ports
+              .map(
+                (p) =>
+                  `<option${p === "COM5" ? " selected" : ""}>${p}</option>`,
+              )
+              .join("")
+          : '<option value="">No ports found</option>';
+      }
+
+      async function doConnect() {
+        const port = document.getElementById("portSel").value;
+        if (!port) return;
+        const r = await fetch("/api/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ port }),
+        });
+        const d = await r.json();
+        if (d.ok) {
+          connected = true;
+          const s = document.getElementById("connStatus");
+          s.textContent = `Connected on ${port}`;
+          s.className = "status-line ok";
+          setTimeout(goStep2, 800);
+        }
+      }
+
+      function skipConnect() {
+        connected = true;
+        goStep2();
+      }
+
+      function goStep2() {
+        document.getElementById("step1").style.display = "none";
+        document.getElementById("step2").style.display = "block";
+      }
+
+      function startCalib() {
+        document.getElementById("startBtn").disabled = true;
+        elapsed = 0;
+
+        const circle = document.getElementById("breathCircle");
+        const fill = document.getElementById("progFill");
+        const label = document.getElementById("progLabel");
+        const status = document.getElementById("calibStatus");
+
+        circle.className = "circle active";
+        circle.textContent = "Relax";
+
+        // Tell server to reset + start collecting baseline
+        fetch("/api/reset_calibration", { method: "POST" });
+
+        timer = setInterval(async () => {
+          elapsed++;
+          const pct = (elapsed / TOTAL_SECS) * 100;
+          fill.style.width = pct + "%";
+          label.textContent = `${TOTAL_SECS - elapsed} seconds remaining — stay relaxed`;
+
+          if (elapsed >= TOTAL_SECS) {
+            clearInterval(timer);
+            circle.className = "circle done";
+            circle.textContent = "Done";
+            label.textContent = "Calibration complete";
+            status.textContent = "Threshold set to your baseline.";
+            status.className = "status-line ok";
+
+            // Mark user as calibrated in DB
+            await fetch("/api/set_calibrated", { method: "POST" });
+
+            setTimeout(() => {
+              window.location.href = "/dashboard";
+            }, 1200);
+          }
+        }, 1000);
+      }
+
+      loadPorts();
+    </script>
+  </body>
+</html>

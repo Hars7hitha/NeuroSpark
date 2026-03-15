@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — NeuroSpark</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;700&family=Syne+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #08090d;
+        --surface: #0f1117;
+        --card: #111520;
+        --border: #1a1f2e;
+        --text: #d4dbe8;
+        --muted: #3d4a5c;
+        --accent: #4f7cff;
+        --green: #00e5c0;
+        --amber: #f5a623;
+        --danger: #ff4d6a;
+        --mono: "Syne Mono", monospace;
+        --sans: "Syne", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        min-height: 100vh;
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(8, 9, 13, 0.92);
+        backdrop-filter: blur(12px);
+      }
+      .nav-brand {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+      }
+      .nav-links {
+        display: flex;
+        gap: 0.25rem;
+      }
+      .nav-link {
+        padding: 0.35rem 0.9rem;
+        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: all 0.15s;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        background: var(--surface);
+        color: var(--text);
+      }
+      .nav-user {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+      .page {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .grid-main {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+     .grid-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+      }
+      .card-label {
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 1rem;
+      }
+      .state-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .state-val {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        transition: color 0.8s ease;
+      }
+      .state-focused {
+        color: var(--accent);
+      }
+      .state-relaxed {
+        color: var(--green);
+      }
+      .state-waiting {
+        color: var(--muted);
+      }
+      .conf-row {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+      }
+      .bar-track {
+        background: var(--border);
+        border-radius: 99px;
+        height: 3px;
+      }
+      .bar-fill {
+        height: 3px;
+        border-radius: 99px;
+        background: var(--accent);
+        transition: width 1s ease;
+      }
+      .metrics {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+      }
+      .metric {
+        flex: 1;
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 0.75rem;
+        text-align: center;
+      }
+      .metric-n {
+        font-family: var(--mono);
+        font-size: 1.2rem;
+        color: var(--text);
+      }
+      .metric-l {
+        font-size: 0.65rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.2rem;
+      }
+      #waveCanvas {
+        width: 100%;
+        height: 180px;
+        background: var(--surface);
+        border-radius: 10px;
+        display: block;
+      }
+      .connect-bar {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+      }
+      select,
+      .btn-sm {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        padding: 0.45rem 0.8rem;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      select:focus {
+        border-color: var(--accent);
+      }
+      .btn-sm:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .btn-connect {
+        background: var(--accent);
+        color: #fff;
+        border-color: transparent;
+      }
+      .btn-connect:hover {
+        opacity: 0.85;
+        color: #fff;
+      }
+      .btn-stop {
+        color: var(--danger);
+        border-color: #3f1520;
+      }
+      .btn-stop:hover {
+        border-color: var(--danger);
+      }
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--muted);
+        display: inline-block;
+        margin-right: 5px;
+        vertical-align: middle;
+        transition: background 0.4s;
+      }
+      .dot-live {
+        background: var(--green);
+        box-shadow: 0 0 6px var(--green);
+      }
+      .dot-err {
+        background: var(--danger);
+      }
+      .music-player {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .track-info .track-name {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 0.2rem;
+      }
+      .track-info .track-meta {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        color: var(--muted);
+      }
+      .player-controls {
+        display: flex;
+        gap: 0.5rem;
+      }
+      #audioEl {
+        display: none;
+      }
+      .err-banner {
+        background: #1a0a0d;
+        border: 1px solid #3f1520;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+        color: var(--danger);
+        margin-bottom: 1rem;
+        display: none;
+      }
+      .calib-banner {
+        background: #0a1020;
+        border: 1px solid #1d4ed8;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        color: #60a5fa;
+        margin-bottom: 1rem;
+        display: none;
+      }
+      .ab-display {
+        margin-top: 1rem;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+      }
+      .ab-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .ab-row:last-child {
+        border-bottom: none;
+      }
+      .ab-val {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <span class="nav-brand">NEUROFLOW</span>
+      <div class="nav-links">
+        <a href="/dashboard" class="nav-link active">Dashboard</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/profile" class="nav-link">Profile</a>
+      </div>
+      <span class="nav-user">{{ profile.username }}</span>
+    </nav>
+
+    <script id="profileData" type="application/json">
+      {{ profile | tojson }}
+    </script>
+
+    <div class="page">
+      <div class="connect-bar">
+        <span class="status-dot" id="statusDot"></span>
+        <span
+          id="statusText"
+          style="
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--muted);
+          "
+          >Not connected</span
+        >
+        <select id="portSel"></select>
+        <button class="btn-sm btn-connect" onclick="connect()">Connect</button>
+        <button class="btn-sm btn-stop" onclick="disconnect()">
+          Disconnect
+        </button>
+        <button class="btn-sm" onclick="recalibrate()">Recalibrate</button>
+      </div>
+
+      <div class="err-banner" id="errBanner"></div>
+      <div class="calib-banner" id="calibBanner">
+        Sit relaxed and still for 30 seconds. Calibrating threshold to your
+        body. Music begins after.
+      </div>
+
+      <div class="grid-main">
+        <div class="card">
+          <div class="card-label">Live EEG — A2 &nbsp;·&nbsp; 250 Hz</div>
+          <canvas id="waveCanvas"></canvas>
+        </div>
+        <div class="card state-card">
+          <div class="card-label">Brain state</div>
+          <div class="state-val state-waiting" id="stateVal">—</div>
+          <div class="conf-row">
+            <span>Confidence</span><span id="confPct">—</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" id="confBar" style="width: 0%"></div>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-n" id="focusMins">0:00</div>
+              <div class="metric-l">Focus</div>
+            </div>
+            <div class="metric">
+              <div class="metric-n" id="relaxMins">0:00</div>
+              <div class="metric-l">Relax</div>
+            </div>
+            <div class="metric">
+              <div class="metric-n" id="sampleCount">0</div>
+              <div class="metric-l">Samples</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-bottom">
+
+        <!-- Music player -->
+        <div class="card">
+          <div class="card-label">Now playing</div>
+          <div class="music-player">
+            <div class="track-info">
+              <div class="track-name" id="trackName">
+                Waiting for calibration
+              </div>
+              <div class="track-meta" id="trackMeta">—</div>
+            </div>
+            <audio id="audioEl" controls></audio>
+            <div class="player-controls">
+              <button class="btn-sm" onclick="skipTrack()">Skip</button>
+              <button class="btn-sm" id="muteBtn" onclick="toggleMute()">
+                Mute
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signal + Detection -->
+        <div class="card">
+          <div class="card-label">Signal analysis</div>
+          <div class="ab-display">
+            <div class="ab-row">
+              <span>Alpha / Beta ratio</span>
+              <span class="ab-val" id="abVal">—</span>
+            </div>
+            <div class="ab-row">
+              <span>Signal STD</span>
+              <span class="ab-val" id="stdVal">—</span>
+            </div>
+            <div class="ab-row">
+              <span>Threshold</span>
+              <span class="ab-val" id="threshVal">—</span>
+            </div>
+            <div class="ab-row">
+              <span>Raw reading</span>
+              <span class="ab-val" id="rawVal">—</span>
+            </div>
+          </div>
+          <div
+            style="
+              margin-top: 1.25rem;
+              padding-top: 1rem;
+              border-top: 1px solid var(--border);
+              font-family: var(--mono);
+              font-size: 0.68rem;
+              line-height: 1.9;
+              color: var(--muted);
+            "
+          >
+            <div>FOCUSED <span style="color: var(--muted)">when</span></div>
+            <div style="padding-left: 1rem; color: var(--accent)">
+              STD &gt; threshold
+            </div>
+            <div style="padding-left: 1rem; color: var(--accent)">
+              A/B ratio &lt; 1.0
+            </div>
+            <div style="margin-top: 0.4rem">
+              RELAXED <span style="color: var(--muted)">when</span>
+            </div>
+            <div style="padding-left: 1rem; color: var(--green)">
+              either condition not met
+            </div>
+            <div style="margin-top: 0.75rem; color: var(--muted)">
+              Clench jaw + furrow brow to focus
+            </div>
+            <div style="color: var(--muted)">
+              Release face + breathe slow to relax
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const PROFILE = JSON.parse(
+        document.getElementById("profileData").textContent,
+      );
+      const waveBuffer = new Array(300).fill(512);
+      let committedState = null;
+      let currentTrack = null;
+      let focusSec = 0;
+      let relaxSec = 0;
+      let es = null;
+      let muted = false;
+      let calibrated = false;
+
+      const canvas = document.getElementById("waveCanvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      function drawWave() {
+        const w = canvas.width,
+          h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "#0f1117";
+        ctx.fillRect(0, 0, w, h);
+        if (waveBuffer.every((v) => v === 512)) {
+          ctx.fillStyle = "#3d4a5c";
+          ctx.font = "11px 'Syne Mono',monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("WAITING FOR SIGNAL", w / 2, h / 2);
+          return;
+        }
+        const min = Math.min(...waveBuffer);
+        const max = Math.max(...waveBuffer);
+        const range = max - min || 1;
+        ctx.beginPath();
+        ctx.strokeStyle =
+          committedState === "focused"
+            ? "#4f7cff"
+            : committedState === "relaxed"
+              ? "#00e5c0"
+              : "#3d4a5c";
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.shadowBlur = 6;
+        for (let i = 0; i < waveBuffer.length; i++) {
+          const x = (i / (waveBuffer.length - 1)) * w;
+          const y =
+            h - ((waveBuffer[i] - min) / range) * (h * 0.85) - h * 0.075;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+      setInterval(drawWave, 50);
+
+      function onEEGResult(result) {
+        const { state, conf, ratios, std, raw, threshold, ab } = result;
+
+        waveBuffer.push(typeof raw === "number" ? raw : 512);
+        if (waveBuffer.length > 300) waveBuffer.shift();
+
+        const el = document.getElementById("stateVal");
+        el.textContent = state.toUpperCase();
+        el.className = `state-val state-${state}`;
+
+        const pct = Math.round(conf * 100);
+        document.getElementById("confPct").textContent = pct + "%";
+        document.getElementById("confBar").style.width = pct + "%";
+
+        document.getElementById("abVal").textContent = ab != null ? ab : "—";
+        document.getElementById("stdVal").textContent =
+          std != null ? std.toFixed(1) : "—";
+        document.getElementById("threshVal").textContent = threshold
+          ? threshold.toFixed(1)
+          : "—";
+        document.getElementById("rawVal").textContent =
+          typeof raw === "number" ? raw : "—";
+
+        // Only play music after calibration
+        if (calibrated && state !== committedState) {
+          committedState = state;
+          loadTrack(state);
+        } else if (!calibrated) {
+          committedState = state;
+        }
+
+        if (state === "focused") focusSec += 4;
+        else relaxSec += 4;
+        updateTimers();
+      }
+
+      function updateTimers() {
+        const fmt = (s) =>
+          `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+        document.getElementById("focusMins").textContent = fmt(focusSec);
+        document.getElementById("relaxMins").textContent = fmt(relaxSec);
+      }
+
+      async function loadTrack(state) {
+        const r = await fetch("/api/music/next", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ state, current: currentTrack }),
+        });
+        const d = await r.json();
+        if (!d.track) {
+          document.getElementById("trackName").textContent =
+            "No tracks in /music";
+          document.getElementById("trackMeta").textContent =
+            "Add MP3s named f_mu1.mp3 etc.";
+          return;
+        }
+        const audio = document.getElementById("audioEl");
+        const nextTrack = d.track;
+        if (currentTrack && !audio.paused) {
+          const fadeOut = setInterval(() => {
+            if (audio.volume > 0.05) {
+              audio.volume = Math.max(0, audio.volume - 0.05);
+            } else {
+              clearInterval(fadeOut);
+              audio.pause();
+              audio.volume = 1.0;
+              playNext(audio, nextTrack, state);
+            }
+          }, 80);
+        } else {
+          playNext(audio, nextTrack, state);
+        }
+        currentTrack = nextTrack;
+      }
+
+      function playNext(audio, track, state) {
+        audio.src = `/music/${track}`;
+        audio.volume = 0.0;
+        audio.muted = muted;
+        audio.play().catch(() => {});
+        const fadeIn = setInterval(() => {
+          if (audio.volume < 0.95) {
+            audio.volume = Math.min(1.0, audio.volume + 0.05);
+          } else {
+            audio.volume = 1.0;
+            clearInterval(fadeIn);
+          }
+        }, 80);
+        document.getElementById("trackName").textContent = track.replace(
+          ".mp3",
+          "",
+        );
+        const pref =
+          state === "focused" ? PROFILE.focus_pref : PROFILE.relax_pref;
+        document.getElementById("trackMeta").textContent =
+          `${state} · ${pref || "instrumental"}`;
+      }
+
+      function skipTrack() {
+        if (committedState && calibrated) loadTrack(committedState);
+      }
+
+      function toggleMute() {
+        muted = !muted;
+        document.getElementById("audioEl").muted = muted;
+        document.getElementById("muteBtn").textContent = muted
+          ? "Unmute"
+          : "Mute";
+      }
+
+      async function recalibrate() {
+        await fetch("/api/set_calibrated", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value: false }),
+        });
+        window.location.href = "/calibrate";
+      }
+
+      function startStream() {
+        if (es) es.close();
+        es = new EventSource("/stream");
+        es.onmessage = (e) => {
+          const d = JSON.parse(e.data);
+          if (d.type === "eeg") {
+            document.getElementById("sampleCount").textContent =
+              d.samples ?? "—";
+            if (d.result) {
+              const wasCalibrated = calibrated;
+              calibrated = d.result.calibrated;
+              document.getElementById("calibBanner").style.display = calibrated
+                ? "none"
+                : "block";
+              // First moment calibration completes — load initial track
+              if (!wasCalibrated && calibrated) {
+                loadTrack(committedState || "relaxed");
+              }
+              onEEGResult({ ...d.result, raw: d.raw });
+            }
+          }
+        };
+        es.onerror = () => {};
+      }
+      startStream();
+
+      async function loadPorts() {
+        const r = await fetch("/api/ports");
+        const d = await r.json();
+        const sel = document.getElementById("portSel");
+        sel.innerHTML = d.ports.length
+          ? d.ports
+              .map(
+                (p) =>
+                  `<option${p === "COM5" ? " selected" : ""}>${p}</option>`,
+              )
+              .join("")
+          : '<option value="">No ports found</option>';
+      }
+
+      async function connect() {
+        const port = document.getElementById("portSel").value;
+        if (!port) return;
+        await fetch("/api/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ port }),
+        });
+        pollStatus();
+      }
+
+      async function disconnect() {
+        await fetch("/api/disconnect", { method: "POST" });
+        document.getElementById("audioEl").pause();
+        currentTrack = null;
+        committedState = null;
+        calibrated = false;
+        document.getElementById("trackName").textContent =
+          "Waiting for calibration";
+        document.getElementById("trackMeta").textContent = "—";
+        pollStatus();
+      }
+
+      async function pollStatus() {
+        const r = await fetch("/api/status");
+        const d = await r.json();
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+        const err = document.getElementById("errBanner");
+        if (d.running) {
+          dot.className = "status-dot dot-live";
+          text.textContent = `Connected · ${d.port} · ${d.samples} samples`;
+          err.style.display = "none";
+        } else if (d.error) {
+          dot.className = "status-dot dot-err";
+          text.textContent = "Error";
+          err.textContent = d.error;
+          err.style.display = "block";
+        } else {
+          dot.className = "status-dot";
+          text.textContent = "Not connected";
+          err.style.display = "none";
+        }
+        document.getElementById("sampleCount").textContent = d.samples || 0;
+      }
+
+      setInterval(pollStatus, 3000);
+      loadPorts();
+      pollStatus();
+    </script>
+  </body>
+</html>

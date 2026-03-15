@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profile — NeuroFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;700&family=Syne+Mono&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#08090d; --surface:#0f1117; --card:#111520;
+    --border:#1a1f2e; --text:#d4dbe8; --muted:#3d4a5c;
+    --accent:#4f7cff; --green:#00e5c0; --danger:#ff4d6a;
+    --mono:"Syne Mono",monospace; --sans:"Syne",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);}
+  nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1rem 2rem;border-bottom:1px solid var(--border);
+    background:rgba(8,9,13,0.92);backdrop-filter:blur(12px);
+    position:sticky;top:0;z-index:100;
+  }
+  .nav-brand{font-family:var(--mono);font-size:0.75rem;letter-spacing:0.2em;color:var(--muted);}
+  .nav-links{display:flex;gap:0.25rem;}
+  .nav-link{
+    padding:0.35rem 0.9rem;border-radius:6px;font-family:var(--mono);
+    font-size:0.7rem;letter-spacing:0.1em;color:var(--muted);
+    text-decoration:none;text-transform:uppercase;transition:all 0.15s;
+  }
+  .nav-link:hover,.nav-link.active{background:var(--surface);color:var(--text);}
+  .nav-user{font-family:var(--mono);font-size:0.7rem;color:var(--muted);}
+
+  .page{
+    padding:2rem;max-width:1000px;margin:0 auto;
+    display:grid;grid-template-columns:1fr 300px;gap:1.5rem;
+  }
+  h1{font-size:1.5rem;font-weight:400;grid-column:1/-1;padding-top:0.5rem;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.75rem;}
+  .card-label{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;}
+
+  .question{margin-bottom:1.75rem;}
+  .q-text{font-size:0.95rem;color:var(--text);line-height:1.6;margin-bottom:0.4rem;}
+  .q-note{font-size:0.78rem;color:var(--muted);line-height:1.5;margin-bottom:0.9rem;}
+  .options{display:flex;gap:0.75rem;}
+  .opt{
+    flex:1;padding:0.85rem 1rem;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;transition:all 0.15s;text-align:center;
+  }
+  .opt:hover{border-color:var(--accent);}
+  .opt.selected{border-color:var(--accent);background:#0d1a38;}
+  .opt-title{font-size:0.88rem;font-weight:500;margin-bottom:0.2rem;}
+  .opt-desc{font-size:0.75rem;color:var(--muted);}
+
+  .save-row{display:flex;align-items:center;gap:1rem;margin-top:1.25rem;}
+  .btn-save{
+    background:var(--accent);color:#fff;border:none;border-radius:8px;
+    font-family:var(--sans);font-size:0.85rem;font-weight:500;
+    padding:0.55rem 1.5rem;cursor:pointer;transition:opacity 0.15s;
+    white-space:nowrap;
+  }
+  .btn-save:hover{opacity:0.85;}
+  .success{
+    font-family:var(--mono);font-size:0.72rem;color:var(--green);display:none;
+  }
+
+  /* Right column */
+  .right{display:flex;flex-direction:column;gap:1rem;}
+
+  .btn-logout{
+    display:block;width:100%;
+    background:#1a0a0d;color:var(--danger);
+    border:1px solid #3f1520;border-radius:8px;
+    font-family:var(--mono);font-size:0.75rem;font-weight:500;
+    padding:0.65rem 1rem;cursor:pointer;margin-top:1rem;
+    transition:all 0.15s;text-align:center;letter-spacing:0.05em;
+    text-transform:uppercase;
+  }
+  .btn-logout:hover{background:#2a0a0d;border-color:var(--danger);}
+
+  .track-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.5rem;margin-top:0.5rem;}
+  .t-item{display:flex;align-items:center;gap:0.4rem;font-family:var(--mono);font-size:0.65rem;}
+  .t-ok{color:var(--green);}
+  .t-miss{color:var(--muted);}
+  .tdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+  .tdot-ok{background:var(--green);}
+  .tdot-miss{background:var(--border);}
+  .tcat-label{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:0.75rem 0 0.3rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">NEUROFLOW</span>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/analytics" class="nav-link">Analytics</a>
+    <a href="/profile"   class="nav-link active">Profile</a>
+  </div>
+  <span class="nav-user">{{ profile.username }}</span>
+</nav>
+
+<div class="page">
+  <h1>Profile</h1>
+
+  <!-- Quiz -->
+  <div class="card">
+    <div class="card-label">Music preference quiz</div>
+
+    <div class="question">
+      <div class="q-text">When you need to concentrate — studying, deep work, coding — what kind of music keeps you in the zone?</div>
+      <div class="q-note">This plays when NeuroFlow detects a focused brain state.</div>
+      <div class="options">
+        <div class="opt {% if profile.focus_pref == 'instrumental' %}selected{% endif %}"
+             onclick="selectPref('focus','instrumental',this)">
+          <div class="opt-title">Instrumental</div>
+          <div class="opt-desc">No vocals — minimises distraction</div>
+        </div>
+        <div class="opt {% if profile.focus_pref == 'lyrical' %}selected{% endif %}"
+             onclick="selectPref('focus','lyrical',this)">
+          <div class="opt-title">Lyrical</div>
+          <div class="opt-desc">With vocals — rhythm and energy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="question" style="margin-bottom:0">
+      <div class="q-text">When you want to unwind — after work, resting, meditating — what helps you decompress?</div>
+      <div class="q-note">This plays when NeuroFlow detects a relaxed brain state.</div>
+      <div class="options">
+        <div class="opt {% if profile.relax_pref == 'instrumental' %}selected{% endif %}"
+             onclick="selectPref('relax','instrumental',this)">
+          <div class="opt-title">Instrumental</div>
+          <div class="opt-desc">Ambient, no lyrics</div>
+        </div>
+        <div class="opt {% if profile.relax_pref == 'lyrical' %}selected{% endif %}"
+             onclick="selectPref('relax','lyrical',this)">
+          <div class="opt-title">Lyrical</div>
+          <div class="opt-desc">Familiar songs to drift with</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="save-row">
+      <button class="btn-save" onclick="save()">Save</button>
+      <span class="success" id="saveOk">Saved — dashboard updated.</span>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="right">
+
+    <!-- Account -->
+    <div class="card">
+      <div class="card-label">Account</div>
+      <div style="font-family:var(--mono);font-size:0.85rem;color:var(--text)">
+        {{ profile.username }}
+      </div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:0.3rem">
+        {{ profile.history | length }} readings logged
+      </div>
+      <a href="/logout"><button class="btn-logout">Sign out</button></a>
+    </div>
+
+    <!-- Track checklist -->
+    <div class="card">
+      <div class="card-label">Music files</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem">Place MP3s in /music/</div>
+
+      <script type="application/json" id="tracks-data">{{ tracks | safe }}</script>
+      <div id="trackList"></div>
+      <script>
+        const TRACKS = JSON.parse(document.getElementById('tracks-data').textContent);
+        const cats = [['focused','Focus tracks'],['relaxed','Relax tracks']];
+        let html = '';
+        cats.forEach(([state, label]) => {
+          html += `<div class="tcat-label">${label}</div><div class="track-grid">`;
+          ['instrumental','lyrical'].forEach(type => {
+            const allFiles = type === 'instrumental'
+              ? (state === 'focused'
+                  ? ['f_mu1','f_mu2','f_mu3','f_mu4','f_mu5']
+                  : ['r_mu1','r_mu2','r_mu3','r_mu4','r_mu5'])
+              : (state === 'focused'
+                  ? ['f_ly1','f_ly2','f_ly3','f_ly4','f_ly5']
+                  : ['r_ly1','r_ly2','r_ly3','r_ly4','r_ly5']);
+            const present = new Set(TRACKS[state]?.[type] || []);
+            allFiles.forEach(f => {
+              const fname = f + '.mp3';
+              const ok = present.has(fname);
+              html += `<div class="t-item ${ok?'t-ok':'t-miss'}">
+                <div class="tdot ${ok?'tdot-ok':'tdot-miss'}"></div>${fname}
+              </div>`;
+            });
+          });
+          html += '</div>';
+        });
+        document.getElementById('trackList').innerHTML = html;
+      </script>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const prefs = {
+    focus: '{{ profile.focus_pref | default("instrumental") }}',
+    relax: '{{ profile.relax_pref | default("instrumental") }}',
+  };
+
+  function selectPref(key, val, el) {
+    prefs[key] = val;
+    el.closest('.options').querySelectorAll('.opt')
+      .forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  async function save() {
+    const r = await fetch('/api/profile', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ focus_pref: prefs.focus, relax_pref: prefs.relax, quiz_done: true })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const el = document.getElementById('saveOk');
+      el.style.display = 'inline';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+  }
+</script>
+</body>
+</html>

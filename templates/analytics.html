@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics — NeuroSpark</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;700&family=Syne+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #08090d;
+        --surface: #0f1117;
+        --card: #111520;
+        --border: #1a1f2e;
+        --text: #d4dbe8;
+        --muted: #3d4a5c;
+        --accent: #4f7cff;
+        --green: #00e5c0;
+        --mono: "Syne Mono", monospace;
+        --sans: "Syne", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--border);
+        background: rgba(8, 9, 13, 0.92);
+        backdrop-filter: blur(12px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .nav-brand {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+      }
+      .nav-links {
+        display: flex;
+        gap: 0.25rem;
+      }
+      .nav-link {
+        padding: 0.35rem 0.9rem;
+        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: all 0.15s;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        background: var(--surface);
+        color: var(--text);
+      }
+      .nav-user {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+
+      .page {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin-bottom: 2rem;
+      }
+
+      .kpi-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .kpi {
+        flex: 1;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+      }
+      .kpi-n {
+        font-family: var(--mono);
+        font-size: 2rem;
+        font-weight: 500;
+        color: var(--text);
+        line-height: 1;
+      }
+      .kpi-l {
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 0.35rem;
+      }
+
+      .chart-full {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      .charts {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.25rem;
+      }
+      .chart-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+      }
+      .card-label {
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 1rem;
+      }
+      .empty {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 3rem;
+        text-align: center;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <span class="nav-brand">NEUROFLOW</span>
+      <div class="nav-links">
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/analytics" class="nav-link active">Analytics</a>
+        <a href="/profile" class="nav-link">Profile</a>
+      </div>
+      <span class="nav-user">{{ profile.username }}</span>
+    </nav>
+
+    <div class="page">
+      <h1>Analytics</h1>
+      <div id="content"></div>
+    </div>
+
+    <script type="application/json" id="history-data">
+      {{ history | safe }}
+    </script>
+
+    <script>
+      const raw = JSON.parse(
+        document.getElementById("history-data").textContent,
+      );
+
+      if (!raw.length) {
+        document.getElementById("content").innerHTML =
+          '<div class="empty">No session data yet. Connect EEG and start a session.</div>';
+      } else {
+        const focused = raw.filter((r) => r.state === "focused").length;
+        const relaxed = raw.filter((r) => r.state === "relaxed").length;
+        const total = raw.length;
+        const focusPct = Math.round((focused / total) * 100);
+        const days = new Set(raw.map((r) => r.ts.split(" ")[0])).size;
+
+        document.getElementById("content").innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-n">${total}</div>
+        <div class="kpi-l">Total readings</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-n">${focusPct}%</div>
+        <div class="kpi-l">Focus rate</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-n">${days}</div>
+        <div class="kpi-l">Session days</div>
+      </div>
+    </div>
+
+    <div class="chart-full">
+      <div class="card-label">Focus / Relaxed timeline — last 300 readings</div>
+      <canvas id="cTimeline" height="70"></canvas>
+    </div>
+
+    <div class="charts">
+      <div class="chart-card">
+        <div class="card-label">State distribution</div>
+        <canvas id="cDist"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-label">Alpha vs Beta — last 100 readings</div>
+        <canvas id="cBands"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-label">Daily focus rate</div>
+        <canvas id="cDaily"></canvas>
+      </div>
+    </div>
+  `;
+
+        Chart.defaults.color = "#3d4a5c";
+        const grid = "#1a1f2e";
+
+        // Timeline
+        const tl = raw.slice(-300);
+        new Chart(document.getElementById("cTimeline"), {
+          type: "line",
+          data: {
+            labels: tl.map((r) => r.ts.split(" ")[1]),
+            datasets: [
+              {
+                data: tl.map((r) => (r.state === "focused" ? 1 : 0)),
+                borderColor: "#4f7cff",
+                backgroundColor: (ctx) => {
+                  const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 100);
+                  g.addColorStop(0, "#4f7cff30");
+                  g.addColorStop(1, "#4f7cff00");
+                  return g;
+                },
+                fill: true,
+                pointRadius: 0,
+                borderWidth: 1.5,
+                stepped: "before",
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                ticks: { maxTicksLimit: 8, color: "#3d4a5c" },
+                grid: { color: grid },
+              },
+              y: {
+                min: 0,
+                max: 1,
+                ticks: {
+                  callback: (v) => (v === 1 ? "Focused" : "Relaxed"),
+                  color: "#3d4a5c",
+                },
+                grid: { color: grid },
+              },
+            },
+            plugins: { legend: { display: false } },
+          },
+        });
+
+        // Donut
+        new Chart(document.getElementById("cDist"), {
+          type: "doughnut",
+          data: {
+            labels: ["Focused", "Relaxed"],
+            datasets: [
+              {
+                data: [focused, relaxed],
+                backgroundColor: ["#4f7cff", "#00e5c0"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#3d4a5c",
+                  font: { family: "Syne Mono", size: 10 },
+                },
+              },
+            },
+          },
+        });
+
+        // Alpha vs Beta
+        const ab = raw.slice(-100);
+        new Chart(document.getElementById("cBands"), {
+          type: "line",
+          data: {
+            labels: ab.map((_, i) => i),
+            datasets: [
+              {
+                label: "Alpha",
+                data: ab.map((r) => +(r.alpha * 100).toFixed(2)),
+                borderColor: "#00e5c0",
+                backgroundColor: "transparent",
+                pointRadius: 0,
+                borderWidth: 1.5,
+              },
+              {
+                label: "Beta",
+                data: ab.map((r) => +(r.beta * 100).toFixed(2)),
+                borderColor: "#4f7cff",
+                backgroundColor: "transparent",
+                pointRadius: 0,
+                borderWidth: 1.5,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: { display: false },
+              y: {
+                ticks: { color: "#3d4a5c", callback: (v) => v + "%" },
+                grid: { color: grid },
+              },
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#3d4a5c",
+                  font: { family: "Syne Mono", size: 10 },
+                },
+              },
+            },
+          },
+        });
+
+        // Daily focus rate
+        const byDay = {};
+        raw.forEach((r) => {
+          const d = r.ts.split(" ")[0];
+          if (!byDay[d]) byDay[d] = { f: 0, t: 0 };
+          byDay[d].t++;
+          if (r.state === "focused") byDay[d].f++;
+        });
+        const dayLabels = Object.keys(byDay).sort();
+        new Chart(document.getElementById("cDaily"), {
+          type: "bar",
+          data: {
+            labels: dayLabels,
+            datasets: [
+              {
+                data: dayLabels.map((d) =>
+                  Math.round((byDay[d].f / byDay[d].t) * 100),
+                ),
+                backgroundColor: "#4f7cff60",
+                borderColor: "#4f7cff",
+                borderWidth: 1,
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: { ticks: { color: "#3d4a5c" }, grid: { color: grid } },
+              y: {
+                ticks: { color: "#3d4a5c", callback: (v) => v + "%" },
+                grid: { color: grid },
+                min: 0,
+                max: 100,
+              },
+            },
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

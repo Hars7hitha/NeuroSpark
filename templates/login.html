@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuroFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;700&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #08090d;
+    --surface:  #0f1117;
+    --border:   #1a1f2e;
+    --text:     #d4dbe8;
+    --muted:    #3d4a5c;
+    --accent:   #4f7cff;
+    --accent2:  #00e5c0;
+    --danger:   #ff4d6a;
+    --mono:     'Syne Mono', monospace;
+    --sans:     'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, #0f1430 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .wrap {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 400px;
+    padding: 2rem;
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .brand-mono {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .brand-name {
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-top: 0.4rem;
+  }
+  .brand-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+  .tab {
+    flex: 1; padding: 0.65rem; text-align: center;
+    font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.2s;
+  }
+  .tab.active { color: var(--text); border-color: var(--accent); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .field { margin-bottom: 1.25rem; }
+  .field label {
+    display: block;
+    font-family: var(--mono); font-size: 0.65rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 0.4rem;
+  }
+  .field input {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+    padding: 0.65rem 0.85rem; outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus { border-color: var(--accent); }
+
+  .btn {
+    width: 100%; padding: 0.7rem;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px;
+    font-family: var(--sans); font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; margin-top: 0.5rem;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { opacity: 0.7; }
+
+  .error {
+    background: #1a0a0d; border: 1px solid #3f1520;
+    border-radius: 8px; padding: 0.65rem 0.85rem;
+    font-size: 0.82rem; color: var(--danger); margin-bottom: 1rem;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-mono">v1.0</div>
+    <div class="brand-name">NeuroSpark</div>
+    <div class="brand-sub">Adaptive music from your brain state</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="login">Sign in</div>
+    <div class="tab" data-tab="signup">Create account</div>
+  </div>
+
+  <!-- Login -->
+  <div class="panel active" id="login">
+    <div class="error" id="login-err"></div>
+    <div class="field"><label>Username</label><input type="text" id="li-u" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="li-p" autocomplete="current-password"></div>
+    <button class="btn" onclick="doLogin()">Sign in</button>
+  </div>
+
+  <!-- Signup -->
+  <div class="panel" id="signup">
+    <div class="error" id="su-err"></div>
+    <div class="field"><label>Username</label><input type="text" id="su-u" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="su-p" autocomplete="new-password"></div>
+    <div class="field"><label>Confirm password</label><input type="password" id="su-p2"></div>
+    <button class="btn" onclick="doSignup()">Create account</button>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function doLogin() {
+  const u = document.getElementById('li-u').value.trim();
+  const p = document.getElementById('li-p').value;
+  if (!u || !p) return showErr('login-err', 'Enter username and password.');
+  const r = await fetch('/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username: u, password: p})
+  });
+  const d = await r.json();
+  if (d.ok) location.href = d.redirect;
+  else showErr('login-err', d.error);
+}
+
+async function doSignup() {
+  const u  = document.getElementById('su-u').value.trim();
+  const p  = document.getElementById('su-p').value;
+  const p2 = document.getElementById('su-p2').value;
+  if (p !== p2) return showErr('su-err', 'Passwords do not match.');
+  const r = await fetch('/signup', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username: u, password: p})
+  });
+  const d = await r.json();
+  if (d.ok) location.href = d.redirect;
+  else showErr('su-err', d.error);
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.panel.active').id;
+  if (active === 'login') doLogin();
+  else doSignup();
+});
+</script>
+</body>
+</html>
