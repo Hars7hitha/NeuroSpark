@@ -11,9 +11,9 @@ Adaptive neurofeedback music player using Arduino EEG.
 6. Open http://localhost:5000
 
 ## Music naming
-focused instrumental: f_mu1-5.mp3
-focused lyrical:      f_ly1-5.mp3
-relaxed instrumental: r_mu1-5.mp3
+focused instrumental: f_mu1-5.mp3,
+focused lyrical:      f_ly1-5.mp3,
+relaxed instrumental: r_mu1-5.mp3,
 relaxed lyrical:      r_ly1-5.mp3
 ```
 
